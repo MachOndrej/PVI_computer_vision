@@ -5,8 +5,9 @@ import easyocr
 import matplotlib.pyplot as plt
 
 image = cv2.imread('cropped_img.jpg')
-reader = easyocr.Reader(['en'])        # run once
-
+# Nacteni modelu
+reader = easyocr.Reader(['en'])
+# Vysledky ruzne pripravenych obrazku po zpracovani
 result = reader.readtext(image, detail=0)
 print('Detected Text (BGR): ', result)
 
@@ -24,11 +25,10 @@ print('Detected Text (Denoised):', result)
 
 enhanced_image = cv2.equalizeHist(image_grey)
 result = reader.readtext(enhanced_image, detail=0)
+# Nahled obrazku
 plt.imshow(enhanced_image)
 plt.axis('off')
 plt.show()
 print('Detected Text (Enhanced Contrast):', result, '✓')
 
 print('Real (Correct) Text: 3SC 4898')
-#cv2.imshow('cropped car', image)
-

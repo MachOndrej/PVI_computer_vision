@@ -30,7 +30,7 @@ cv2.destroyAllWindows()
 # tvorba minimální ohraničující obdélník na zaklade masky
 bbox = cv2.boundingRect(blue_mask)
 
-img2 = image.copy()     # kopie pro zbytek obrazku
+img_copy = image.copy()     # kopie pro zbytek obrazku
 # nakresleni zeleneho obdelniku
 x, y, w, h = bbox
 cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -41,7 +41,7 @@ cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
 cv2.imshow('image', image)
 
 # Oriznu si puvodni obrazek (resp. jeho kopii) podle hodnot zeleneho obdelniku
-crop_img = img2[y:y+h, x:x+w]
+crop_img = img_copy[y:y + h, x:x + w]
 
 cv2.imshow('cropped', crop_img)
 cv2.imwrite('cropped_img.jpg', crop_img)
