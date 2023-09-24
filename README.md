@@ -1,1 +1,2 @@
-# PVI_computer_vision
+# PVI 2023/24 (Počítačové vidění - Computer Vision)
+
