@@ -1,89 +1,107 @@
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 
-im = cv2.imread('cv02_02.bmp')      # (300x300)
+im = cv2.imread('cv02_02.bmp')
+#im2 = im.copy()
+hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
+gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
-im_copy = im.copy()
-
-
-
-plt.title('IMage')
-plt.imshow(im_copy)
+im = cv2.cvtColor(im, cv2.COLOR_BGR2RGB)
+plt.title('Image Before')
+plt.imshow(im)
 plt.show()
+rows, cols = gray.shape
 
+
+def rotate(image, angle, center=None, scale=0.50):
+    (h, w) = image.shape[:2]
+    if center is None:
+        center = (w / 2, h / 2)
+    M = cv2.getRotationMatrix2D(center, angle, scale)
+    rotated = cv2.warpAffine(image, M, (w, h))
+    return rotated
+
+#TODO: Psani do obrazku
 def write_to_image(im, org, text, text_color='black'):
     # font
     font = cv2.FONT_HERSHEY_SIMPLEX
     # fontScale
-    fontScale = 1
+    fontScale = 0.5
     # color
     if text_color == 'black':
         colT = (0, 0, 0)  # black text
     else:
         colT = (255, 255, 255)  # white text
     # Line thickness of 2 px
-    thickness = 2
+    thickness = 1
     cv2.putText(im, text, org, font, fontScale, colT, thickness, cv2.LINE_AA)
 
-def color_of_square(image_file, new_image_name):
-    # load img
-    im = cv2.imread(image_file)
-    im2 = im.copy()  # copy for work
-    # convert to grayscale and HSV
-    hsv = cv2.cvtColor(im, cv2.COLOR_BGR2HSV)
-    gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
 
-    rows, cols = gray.shape
-    color_list = ('red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'black', 'white')
-
-    # Loop through each pixel
-    for i in range(100, rows, 200):
-        for j in range(100, cols, 200):
-            # kontrola black/white podle grayscale image
-            if gray[i, j] == 0:
-                write_to_image(im2, (j - 30, i), color_list[7], 'white')
-                continue
-            if gray[i, j] == 255:
-                write_to_image(im2, (j - 30, i), color_list[8])
-                continue
-            # kontrola zbytku barev podle HSV image
-            hue_val = hsv[i, j, 0]
-            if 0 <= hue_val < 10:
-                write_to_image(im2, (j - 30, i), color_list[0])
-            elif 10 <= hue_val < 23:
-                write_to_image(im2, (j - 30, i), color_list[1])
-            elif 23 <= hue_val < 40:
-                write_to_image(im2, (j - 30, i), color_list[2])
-            elif 40 <= hue_val < 80:
-                write_to_image(im2, (j - 30, i), color_list[3])
-            elif 80 <= hue_val < 140:
-                write_to_image(im2, (j - 30, i), color_list[4])
-            elif 140 <= hue_val < 155:
-                write_to_image(im2, (j - 30, i), color_list[5])
-            else:
-                write_to_image(im2, (j, i), color_list[6])
-
-    # zapis do noveho obrazku
-    cv2.imwrite(new_image_name, im2)
-    #cv2.imshow('with text', im2)
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+colors_array_list = [
+    np.array([255, 128, 200]),
+    np.array([127, 0, 127]),
+    np.array([255, 127, 0]),
+    np.array([255, 242, 0]),
+    np.array([0, 0, 255]),
+    np.array([0, 255, 0]),
+    np.array([255, 0, 0])]
 
 
-def rotate(image, angle, center = None, scale = 1.0): 
-    (h, w) = image.shape[:2] 
-    if center is None: 
-        center = (w / 2, h / 2)
-    M = cv2.getRotationMatrix2D(center, angle, scale) 
-    rotated = cv2.warpAffine(image, M, (w, h))
-    return rotated
+def color_picker(image):
+    height, width, channels = image.shape
+    black_array = np.array([0, 0, 0])
+    # Loop through all pixels
+    for y in range(height):
+        for x in range(width):
+            # Get the color of the pixel at position (x, y)
+            pixel_color = image[y, x]
+            # Check if the arrays are equal
+            if not np.array_equal(pixel_color, black_array):
+                if np.array_equal(pixel_color, colors_array_list[0]):
+                    text = 'pink'
+                    return text
+                elif np.array_equal(pixel_color, colors_array_list[1]):
+                    text = 'purple'
+                    return text
+                elif np.array_equal(pixel_color, colors_array_list[2]):
+                    text = 'orange'
+                    return text
+                elif np.array_equal(pixel_color, colors_array_list[3]):
+                    text = 'yellow'
+                    return text
+                elif np.array_equal(pixel_color, colors_array_list[4]):
+                    text = 'blue'
+                    return text
+                elif np.array_equal(pixel_color, colors_array_list[5]):
+                    text = 'green'
+                    return text
+                elif np.array_equal(pixel_color, colors_array_list[6]):
+                    text = 'red'
+                    return text
+                else: print('Color not in list of colors!')
 
-#im = cv2.resize(image, None, fx=0.5, fy=0.5, interpolation = cv2.INTER_CUBIC)
+
+def crop_img_part(img):
+    angle_val = 45
+    for x in range(50, rows, 100):
+        for y in range(50, cols, 100):
+            crpd_img = img[x-50:x+50, y-50:y+50]
+            color_text = color_picker(crpd_img)
+            if angle_val % 2 == 1:
+                scale_num = 1.0
+            else: scale_num = 0.5
+            rotated_crpd_img = rotate(crpd_img, angle_val, center=None, scale=scale_num)
+            # inkrementace uhlu a pocitadla kazde druhe sipky
+            angle_val += 45
+            img[x-50:x+50, y-50:y+50] = rotated_crpd_img
+            write_to_image(img, (y-20, x+30), color_text, 'white')
+    return img
 
 
 if __name__ == "__main__":
-    rotate(im_copy, 180)
-    plt.title('Rotate')
-    plt.imshow()
+    im2 = crop_img_part(im)
+    cv2.imwrite('cv3_with_text.jpg', im2)
+    plt.title('Image After')
+    plt.imshow(im2)
     plt.show()
