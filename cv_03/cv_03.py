@@ -22,7 +22,7 @@ def rotate(image, angle, center=None, scale=0.50):
     rotated = cv2.warpAffine(image, M, (w, h))
     return rotated
 
-#TODO: Psani do obrazku
+
 def write_to_image(im, org, text, text_color='black'):
     # font
     font = cv2.FONT_HERSHEY_SIMPLEX
