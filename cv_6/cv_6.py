@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 from scipy.ndimage import label
-from skimage import io, color, morphology, measure
 
 image = cv2.imread('pvi_cv06_mince.jpg')
 rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -117,36 +116,57 @@ plt.imshow(label_hue, cmap='jet')
 plt.title('Region Ident.', fontsize=10)
 plt.colorbar()
 # 3rd position
-result = watershed_bin_img.copy()
+cleaned_binary_image = watershed_bin_img.copy()
 for i in range(1, ncc + 1):
     marked_area = np.where(label_hue == i)
     area_size = len(marked_area[0])
     if area_size < 1000:
-        result[label_hue == i] = 0
+        cleaned_binary_image[label_hue == i] = 0
 fig.add_subplot(rows, columns, 3)
-plt.imshow(result, cmap='jet')
+plt.imshow(cleaned_binary_image, cmap='jet')
 plt.title('Result - Binary Image', fontsize=10)
 plt.colorbar()
 plt.show()
+
 
 def kernel_construction(n):
     return np.ones((n, n), np.uint8)
 
 
-def granulometry(data, sizes=None):
+def granulometrie(data, sizes=None):
+    out = np.zeros_like(data, dtype=np.uint8)
     if sizes is None:
-        sizes = range(3, 64+1)
-    granulo = [cv2.morphologyEx(data, cv2.MORPH_OPEN, kernel_construction(n), iterations=1).sum() for n in sizes]
-    return granulo
+        sizes = range(3, 64 + 1)
+    for n in sizes:
+        out += cv2.morphologyEx(data, cv2.MORPH_OPEN, kernel_construction(n), iterations=1)
+    return out
+
+
+granulo_sizes = range(3, 65)
+granulo = granulometrie(cleaned_binary_image, granulo_sizes)
+
+x_axis = range(40, 65)
+granulometric_spectrum = cv2.calcHist([granulo], [0], None, [25], [40, 65])
+
+for i in x_axis:
+    object_count = len(granulo[granulo == i])/i**2
+    if object_count < 0.9:
+        continue
+    object_count = int(np.floor(object_count))
+    print("No. objects: ", object_count, " size: ", i, " x ", i)
 
 """Define Figure4"""
 fig = plt.figure(figsize=(13, 7))
 rows = 1
 columns = 2
 # 1st position
-
 fig.add_subplot(rows, columns, 1)
-plt.imshow(watershed_bin_img, cmap='jet')
+plt.imshow(granulo, cmap='jet')
 plt.title('Result - Granulometry', fontsize=10)
 plt.colorbar()
+# 2nd position
+fig.add_subplot(rows, columns, 2)
+plt.plot(x_axis, granulometric_spectrum)
+plt.title('Granul. Image Histogram', fontsize=10)
+plt.show()
 print('done')
