@@ -92,6 +92,17 @@ def main():
     print('\n', text)
 
 
+def calculate_iou(box1, box2):
+    x1, y1, w1, h1 = box1
+    x2, y2, w2, h2 = box2
+
+    intersection_area = max(0, min(x1 + w1, x2 + w2) - max(x1, x2)) * max(0, min(y1 + h1, y2 + h2) - max(y1, y2))
+    union_area = w1 * h1 + w2 * h2 - intersection_area
+
+    iou = intersection_area / union_area if union_area > 0 else 0
+    return iou
+
+
 def face_detect_part():
     filImage = 'pvi_cv07_people.jpg'
     bgr = cv2.imread(filImage)
@@ -118,7 +129,41 @@ def face_detect_part():
     for (x, y, w, h) in faces:
         cv2.rectangle(bgr, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-    IoU = 0.
+    # dorovnani kvuli nerozpoznanym oblicejum
+    list_diff = abs(len(faces) - len(boxes))
+    for _ in range(list_diff):
+        row_to_add = np.array([0, 0, 0, 0])
+        faces = np.vstack([faces, row_to_add])
+
+    true_positives = 0
+    false_positives = 0
+    computed_IoUs_list = []
+
+    for (x_detected, y_detected, w_detected, h_detected) in faces:
+        detected_box = [x_detected, y_detected, w_detected, h_detected]
+        detected_iou = max(calculate_iou(detected_box, true_box) for true_box in boxes)
+        computed_IoUs_list.append(detected_iou)
+    # vyhodnocení pro IoU = 0,5 - accuracy, precision a recall
+    IoU = 0.5
+    for jj in computed_IoUs_list:
+        if jj <= IoU:
+            false_positives += 1
+        else:
+            true_positives += 1
+
+    false_negatives = len(boxes) - true_positives - false_positives
+    total_detected = true_positives + false_positives
+
+    # acc = (TP + TN)/(TP + TN + FP + FN) = 5/10 = 0.5
+    accuracy = true_positives / total_detected
+    # prec = TP/(TP + FP) = 5/10 = 0.5
+    precision = true_positives / (true_positives + false_positives)
+    # rec = TP/(TP + FN) = 5/
+    recall = true_positives / (true_positives + false_negatives)
+    
+    print("Accuracy:", accuracy)
+    print("Precision:", precision)
+    print("Recall:", recall)
 
     rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
     plt.imshow(rgb)
