@@ -160,7 +160,7 @@ def face_detect_part():
     precision = true_positives / (true_positives + false_positives)
     # rec = TP/(TP + FN) = 5/
     recall = true_positives / (true_positives + false_negatives)
-    
+
     print("Accuracy:", accuracy)
     print("Precision:", precision)
     print("Recall:", recall)
