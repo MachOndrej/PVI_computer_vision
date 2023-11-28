@@ -23,7 +23,7 @@ def cutout_face_name_surname(img):
 def first_method():
     MIN_MATCH_COUNT = 10
     img1 = cv.imread('pvi_cv09/obcansky_prukaz_cr_sablona_2012_2014.png', cv.IMREAD_GRAYSCALE)      # queryImage
-    img2 = cv.imread('pvi_cv09/CA10_01.jpg', cv.IMREAD_GRAYSCALE)                                   # trainImage
+    img2 = cv.imread('pvi_cv09/HA10_06.jpg', cv.IMREAD_GRAYSCALE)                                   # trainImage
     img_positioned = img2.copy()
 
     # Initiate SIFT detector
@@ -131,7 +131,12 @@ def first_method():
                       fontScale=0.4,
                       color=(0, 0, 255),
                       thickness=1)
-    cv.imwrite('cv9_result.jpg', face)
+    print(text_name)
+    print(text_surname)
+    #cv.imwrite('cv9_result.jpg', face)
+    plt.imshow(face, cmap='gray')
+    plt.title('final')
+    plt.show()
 
 
 def main():
