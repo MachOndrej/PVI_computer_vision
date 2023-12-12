@@ -1,9 +1,6 @@
 import cv2
 import matplotlib.pyplot as plt
-import numpy
-import os
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
 
 # Filter Creation
 filter_mace = []
@@ -51,8 +48,21 @@ for ii in range(0, len(results)):
     restored_unknown = np.abs(restored_unknown)
     restored.append(restored_unknown)
 
+for jj in range(0, len(restored)):
+    # Calculate the indices for the center of the image
+    center_x, center_y = restored[jj].shape[1] // 2, restored[jj].shape[0] // 2
+    # Switch the quadrants
+    top_left = restored[jj][:center_y, :center_x]
+    top_right = restored[jj][:center_y, center_x:]
+    bottom_left = restored[jj][center_y:, :center_x]
+    bottom_right = restored[jj][center_y:, center_x:]
+
+    # Reassemble the image with switched quadrants
+    switched_image = np.vstack((np.hstack((bottom_right, bottom_left)),
+                                np.hstack((top_right, top_left))))
+    restored[jj] = switched_image
+
 restored_copy = restored.copy()
-# TODO: Spectra vykreslit
 plt.figure(figsize=(10, 4))
 # Plot the first image in the first subplot
 plt.subplot(1, 3, 1)
@@ -95,24 +105,18 @@ plt.show()
 # Strmost
 steepness_maps = {}
 for j in range(0, len(restored_copy)):
-    # Define the region of interest (ROI)
-    roi_start_x, roi_end_x = 0, 10
-    roi_start_y, roi_end_y = 0, 10
-    # Extract the ROI from the spectrum image
-    roi = restored_copy[j]
-    roi = roi[roi_start_y:roi_end_y, roi_start_x:roi_end_x]
-    # Find the minimum and maximum values in the array
-    min_value_normalized = np.min(roi)
-    max_value_normalized = np.max(roi)
-    diff = np.abs(max_value_normalized - min_value_normalized)
-    if j == 0:
-        diff = diff/2
-    steepness_maps[j + 1] = diff
+    O = restored_copy[j][22:42, 22:42].copy()
+    O[5:15, 5:15] = 0
+    O = O.flatten()
+    O = np.delete(O, np.where(O == 0))
+    V = restored_copy[j][27:37, 27:37].copy()
+    V = V.flatten()
+    res_i = (np.max(V) - np.mean(O)) / np.std(O)
+    steepness_maps[j + 1] = res_i
 # Choose the map with the maximum steepness
 max_steepness_key = max(steepness_maps, key=lambda k: np.max(steepness_maps[k]))
 max_steepness = steepness_maps[max_steepness_key]
 
-# TODO: Vykreslit puvodni + Unknown img
 # Final Figure Plot
 nearest_file = 'p' + str(max_steepness_key) + str(np.random.randint(1, 4)) + '.bmp'
 nearest = cv2.imread('PVI_C11/' + nearest_file)
@@ -129,4 +133,3 @@ plt.title('Nearest Class')
 plt.tight_layout()
 # Show the figure
 plt.show()
-print('Done')
